@@ -19,8 +19,12 @@ normalizedFoil = importdata(filename,delimiterIn);
     y = linspace(startY,endY,points); %% radius direction, generating the list of y-coordinates 
 
 offset = 70; % offset for the elipse (so that we get growing, then shrinking) 
+x_Upper = 100-y;
+x_Lower = y;
+%{
 x_Upper  = ((130^2 - (2.*y-offset).^2)./36).^(1/2);
 x_Lower = ((130^2 - (2.*y-offset).^2)./100).^(1/2)* -1; 
+%}
 
 
 % 1/4 chord locations:
@@ -39,12 +43,12 @@ title('NACA-2411 Airfoil')
 plot(normalizedFoil(:,1),normalizedFoil(:,2), 'r');
 hold on
 axis equal
-
+%{
 plot(fliped_Foil(:,1), fliped_Foil(:,2),'b'); 
 scatter(fliped_Foil(:,1), fliped_Foil(:,2),'b');
 plot([-2,2],[0,0]); 
 hold off
-
+%} 
 
 %% Test initial guide Curves
 % plotting the initial guidance curves
@@ -60,10 +64,10 @@ axis equal
 %% Transformations
 
 % functions
-twistAngle = -26.89*log((y+20)./1000)-33.183; % test function for twist (angles in degrees)
+twistAngle = ones(length(y)).*60; % test function for twist (angles in degrees)
 %twistAngle = 10*y; 
 skewAngle = 0.01 * (y-startY).^(1.5); %function for skew angle along radius (degrees)
-skewDistance = tand(skewAngle) .* (y-startY); % calculating the skew distance along y-axis (mm)
+skewDistance = zeros(length(y)); % calculating the skew distance along y-axis (mm)
 
 % place holders for curve transformations:
 x_Upper_Rotated = zeros(1,points);
@@ -82,7 +86,7 @@ for n= 1: points
       % the manuipulation is done for each x-z point
     target = [x_Upper(n),x_Lower(n);0,0]; 
     
-    % moving origin to 1/4 chord length (z still 0) 
+    % moving origin to 1/4 chord length
     target(1,1) = target(1,1) - quarterChord(n); 
     target(1,2) = target(1,2) - quarterChord(n);
     
@@ -142,12 +146,12 @@ last_Profile_y =zeros(1, length(last_Profile))+y(last_y)-startY;
  first_Coordinates = horzcat(first_Profile(:,1), transpose(first_Profile_y), first_Profile(:,2));
  last_Coordinates = horzcat(last_Profile(:,1), transpose(last_Profile_y), last_Profile(:,2));
 
- 
+ %{
  dlmwrite('twisted_Upper.txt',transpose(twisted_Upper),'delimiter','\t','precision',5);
  dlmwrite('twisted_Lower.txt',transpose(twisted_Lower),'delimiter','\t','precision',5);
  dlmwrite('first_Profile.txt',first_Coordinates, 'delimiter','\t','precision',5);
  dlmwrite('last_Profile.txt',last_Coordinates, 'delimiter','\t','precision',5);
-
+%}
 
 %% Testing Code for Transformes 
 

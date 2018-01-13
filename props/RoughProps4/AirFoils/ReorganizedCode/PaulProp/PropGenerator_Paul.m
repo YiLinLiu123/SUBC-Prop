@@ -1,5 +1,5 @@
 %% Set Up
-
+clear 
 % importing airFoil
 filename = 'masterNormalized.txt'; %% file name for the ordinates of the airfoil 
 % assume that the aifoil is normalized
@@ -9,7 +9,7 @@ normalizedFoil = importdata(filename,delimiterIn);
 
 % guidance Curve Equations
     % y vector (radial vector for the blade)
-    startY = ; % starting y  (coordinate) value for getting the correct curvture (mm) 
+    startY = 0; % starting y  (coordinate) value for getting the correct curvture (mm) 
      % of the elipse (mm)
     endY = 100; % ending Y-coordinate
     points = 80;
@@ -63,7 +63,7 @@ z_Rotated_Lower = zeros(1,points);
 % airfoil profiles
 % Generating the first profile (at the "origin")
 first_y = 1; %point number please, location of first profile (mm along radius)
-last_y = 99; % point number please
+last_y = 79; % point number please
 
 
 % master for loop tranformations
@@ -179,12 +179,12 @@ axis equal
 hold on 
         
 % translating to match initial guidance curve
-transformed_Foil(:,1) = transformed_Foil(:,1) + x_Upper(99);
+transformed_Foil(:,1) = transformed_Foil(:,1) + x_Upper(last_y);
 plot(transformed_Foil(:,1),transformed_Foil(:,2),'b');
 axis equal
 
 %now moving to quarter chord
-transformed_Foil(:,1) = transformed_Foil(:,1) - quarterChord(99); 
+transformed_Foil(:,1) = transformed_Foil(:,1) - quarterChord(last_y); 
 plot(transformed_Foil(:,1),transformed_Foil(:,2),'g');
 scatter(transformed_Foil(:,1),transformed_Foil(:,2),'g');
 plot([-2,2],[0,0],'g'); 
@@ -192,7 +192,7 @@ axis equal
 
 
 % now rotated
-rotation = [cosd(twistAngle(99)), -sind(twistAngle(99)); sind(twistAngle(99)), cosd(twistAngle(99))];
+rotation = [cosd(twistAngle(last_y)), -sind(twistAngle(last_y)); sind(twistAngle(last_y)), cosd(twistAngle(last_y))];
 transformed_Foil = transpose( rotation * transformed_Foil.'); 
 plot(transformed_Foil(:,1),transformed_Foil(:,2),'y');
 axis equal
