@@ -51,7 +51,8 @@ axis equal
 % functions
 twistAngle = ones(1,length(y))*60-log(y-startY+1)*10; % test function for twist (angles in degrees)
 %twistAngle = 10*y; 
-skewAngle = 0.01 * (y-startY).^(1.5); %function for skew angle along radius (degrees)
+%%skewAngle = 0.01 * (y-startY).^(1.5); %function for skew angle along radius (degrees)
+skewAngle = 0.00 * (y-startY).^(1.5)
 skewDistance = tand(skewAngle) .* (y-startY); % calculating the skew distance along y-axis (mm)
 
 % place holders for curve transformations:
@@ -133,12 +134,12 @@ last_Profile_y =zeros(1, length(last_Profile))+y(last_y)-startY;
  first_Coordinates = horzcat(first_Profile(:,1), transpose(first_Profile_y), first_Profile(:,2));
  last_Coordinates = horzcat(last_Profile(:,1), transpose(last_Profile_y), last_Profile(:,2));
 
- 
+ %{
  dlmwrite('twisted_Upper.txt',transpose(twisted_Upper),'delimiter','\t','precision',5);
  dlmwrite('twisted_Lower.txt',transpose(twisted_Lower),'delimiter','\t','precision',5);
  dlmwrite('first_Profile.txt',first_Coordinates, 'delimiter','\t','precision',5);
  dlmwrite('last_Profile.txt',last_Coordinates, 'delimiter','\t','precision',5);
-
+%} 
 
 %% Testing Code for Transformes 
 
@@ -213,7 +214,7 @@ plot([x_Upper_Rotated(last_y),x_Lower_Rotated(last_y)], [z_Rotated_Upper(last_y)
 hold on 
 plot(last_Coordinates(:,1),last_Coordinates(:,3),'b');
 scatter(last_Coordinates(:,1),last_Coordinates(:,3),'b');
- plot(transformed_Foil(:,1),transformed_Foil(:,2),'k');
+plot(transformed_Foil(:,1),transformed_Foil(:,2),'k');
  hold on
  
 % also plotting initial maximum (x location) 
@@ -232,6 +233,9 @@ scatter(transformed_Foil(index,1),transformed_Foil(index,2),'r');
   transformed_Foil(index,1) ==  x_Upper_Rotated(last_y)
   transformed_Foil(index,2) == z_Rotated_Upper(last_y)
     
+ %% Testing out the 1/4 chord z-locations of first and last profile
+ first_Quarter = max(first_Profile(:,2)) - min(first_Profile(:,2))*3/4+ min(first_Profile(:,2)); 
+ last_Quarter = max(last_Profile(:,2)) - min(last_Profile(:,2))*3/4+ min(last_Profile(:,2)); 
     
     
  

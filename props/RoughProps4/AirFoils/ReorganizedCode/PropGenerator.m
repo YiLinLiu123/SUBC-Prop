@@ -48,6 +48,7 @@ hold off
 
 %% Test initial guide Curves
 % plotting the initial guidance curves
+clf
 title('Flat Propellor Curves')
 plot(y,x_Upper,'r');
 hold on 
@@ -61,9 +62,10 @@ axis equal
 
 % functions
 twistAngle = -26.89*log((y+20)./1000)-33.183; % test function for twist (angles in degrees)
-%twistAngle = 10*y; 
+%twistAngle = zeros(1,points); 
 skewAngle = 0.01 * (y-startY).^(1.5); %function for skew angle along radius (degrees)
-skewDistance = tand(skewAngle) .* (y-startY); % calculating the skew distance along y-axis (mm)
+%skewDistance = tand(skewAngle) .* (y-startY); % calculating the skew distance along y-axis (mm)
+skewDistance = zeros(1,points);
 
 % place holders for curve transformations:
 x_Upper_Rotated = zeros(1,points);
@@ -99,6 +101,7 @@ for n= 1: points
     % airfoil profile transformations
     if((n == first_y) || (n == last_y))
         %scale oordinates
+        rotation
         chord_Length = x_Upper(n)-x_Lower(n);
         transformed_Foil= fliped_Foil .* chord_Length;
         
@@ -142,13 +145,12 @@ last_Profile_y =zeros(1, length(last_Profile))+y(last_y)-startY;
  first_Coordinates = horzcat(first_Profile(:,1), transpose(first_Profile_y), first_Profile(:,2));
  last_Coordinates = horzcat(last_Profile(:,1), transpose(last_Profile_y), last_Profile(:,2));
 
- 
+ %{
  dlmwrite('twisted_Upper.txt',transpose(twisted_Upper),'delimiter','\t','precision',5);
  dlmwrite('twisted_Lower.txt',transpose(twisted_Lower),'delimiter','\t','precision',5);
  dlmwrite('first_Profile.txt',first_Coordinates, 'delimiter','\t','precision',5);
  dlmwrite('last_Profile.txt',last_Coordinates, 'delimiter','\t','precision',5);
-
-
+%} 
 %% Testing Code for Transformes 
 
 clf
