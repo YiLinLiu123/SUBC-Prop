@@ -1,7 +1,7 @@
 %% Set Up
 clear
 % files will be saved at which directory specified here.
-cd 'P:\University\DuringUni\SubC\Fluids\props\RoughProps4\AirFoils\ReorganizedCode\PaulProp'
+cd 'P:\University\DuringUni\SubC\Fluids\props\RoughProps4\AirFoils\ReorganizedCode'
 
 % importing airFoil
 filename = 'masterNormalized.txt'; %% file name for the ordinates of the airfoil 
@@ -12,20 +12,35 @@ normalizedFoil = importdata(filename,delimiterIn);
 
 % guidance Curve Equations
     % y vector (radial vector for the blade)
-    startY=1; % starting y  (coordinate) value for getting the correct curvture (mm) 
-     % of the elipse (mm)
-    endY = 100; % ending Y-coordinate
-    points = 99;
+    startY=0; % starting y  (coordinate) value for getting the correct curvture (cm) 
+     % of the elipse (cm)
+    endY = 14; % ending Y-coordinate
+    points = 300;        
     y = linspace(startY,endY,points); %% radius direction, generating the list of y-coordinates 
 
-offset = 70; % offset for the elipse (so that we get growing, then shrinking) 
-x_Upper  = ((130^2 - (2.*y-offset).^2)./36).^(1/2);
-x_Lower = ((130^2 - (2.*y-offset).^2)./100).^(1/2)* -1; 
+offset = 7; % offset for the elipse (so that we get growing, then shrinking) 
+
+choice = 2; % 1 for ellipse, 0 for parabola
+if(choice ==1)
+      % ellipse
+    x_Upper  = ((13^2 - (2.*y-offset).^2)./36).^(1/2);
+    x_Lower = ((13^2 - (2.*y-offset).^2)./100).^(1/2)* -1; 
+elseif (choice ==0)    
+    % parabolas
+    x_Upper = -1/18*(y-4).^2+2;
+    x_Lower = 1/80*(y-3).^2-.6;
+elseif(choice ==2)
+    x_Upper = ((400-(2*y-8).^2)./64).^(.5);
+    x_Lower = -((400-(2*y-8).^2)./100).^(.5);
+end 
+
+
 
 
 % 1/4 chord locations:
-quarterChord = x_Lower + 3/4*(x_Upper-x_Lower);
-
+quarterChord = x_Lower + 3/4*(x_Upper-x_Lower) +0.1*(max(y)-y).^(1.1);
+% [zeros(1,extra_Mod), .01* linspace(extra_Mod, points,(points-extra_Mod))];
+quarterChord_Orig = x_Lower + 3/4*(x_Upper-x_Lower);
 % setting up the airfoil:
 fliped_Foil= normalizedFoil;
 fliped_Foil(:,1) = -fliped_Foil(:,1); % flipping the airfoil about y-axis
@@ -53,19 +68,26 @@ title('Flat Propellor Curves')
 plot(y,x_Upper,'r');
 hold on 
 plot(y,x_Lower,'b');
+plot(y,quarterChord,'y');
+plot(y,quarterChord_Orig);
 xlabel('y-coordinates (mm)') % x-axis label
 ylabel('x-coordinates (mm)')
-axis equal 
+axis equal
 
 
 %% Transformations
 
+twistAngle = 178767*(y./100).^4-87784*(y./100).^3+ 17140*(y./100).^2-1721.7*(y./100)+100.11
 % functions
-twistAngle = -26.89*log((y+20)./1000)-33.183; % test function for twist (angles in degrees)
+%twistAngle = -38046*(y./100).^3+12296*(y./100).^2-1531.6*(y./100)+97.746; % Paul
 %twistAngle = zeros(1,points); 
-skewAngle = 0.01 * (y-startY).^(1.5); %function for skew angle along radius (degrees)
-%skewDistance = tand(skewAngle) .* (y-startY); % calculating the skew distance along y-axis (mm)
-skewDistance = zeros(1,points);
+skewAngle = 0.1 * (y-startY).^(1.5); %function for skew angle along radius (degrees)
+skewDistance = tand(skewAngle) .* (y-startY); % calculating the skew distance along y-axis (mm)
+%skewDistance = zeros(1,points);
+z_Lower = 0.5*(y-startY);
+
+%Hotfix, subtract a bit of x
+
 
 % place holders for curve transformations:
 x_Upper_Rotated = zeros(1,points);
@@ -75,8 +97,9 @@ z_Rotated_Lower = zeros(1,points);
 
 % airfoil profiles
 % Generating the first profile (at the "origin")
-first_y = 1; %point number please, location of first profile (mm along radius)
-last_y = 98; % point number please
+first_y = 1/5*points; %point number please, location of first profile (mm along radius)
+last_y = points-1; % point number please
+third_y = 60; 
 
 
 % master for loop tranformations
@@ -99,9 +122,9 @@ for n= 1: points
     z_Rotated_Lower(n) = transformed(2,2);
     
     % airfoil profile transformations
-    if((n == first_y) || (n == last_y))
+    if((n == first_y) || (n == last_y)|| (n== third_y) )
         %scale oordinates
-        rotation
+   
         chord_Length = x_Upper(n)-x_Lower(n);
         transformed_Foil= fliped_Foil .* chord_Length;
         
@@ -117,11 +140,14 @@ for n= 1: points
         % now move back the "origin"
         transformed_Foil(:,1) = transformed_Foil(:,1)- skewDistance(n)+ quarterChord(n);
         
+        %take apart some of the z-component
+        transformed_Foil(:,2) = transformed_Foil(:,2);
+        
         % storing information
         if(n == first_y)
            first_Profile = transformed_Foil;  
-        else 
-           last_Profile = transformed_Foil;
+        elseif (n== last_y)
+           last_Profile = transformed_Foil; 
         end
         
         
@@ -133,24 +159,42 @@ end
 
 %% writing out the curve files (txt files)
 
-% location of the current folder where this code will output files to
+% reorganizing the matrices. 
 twisted_Upper = vertcat(x_Upper_Rotated,y-startY, z_Rotated_Upper); 
 twisted_Lower = vertcat(x_Lower_Rotated,y-startY,z_Rotated_Lower);
 
 % generating the corresponding "y" components
 first_Profile_y = zeros(1, length(first_Profile))+y(first_y)-startY; 
-last_Profile_y =zeros(1, length(last_Profile))+y(last_y)-startY; 
+last_Profile_y =zeros(1, length(last_Profile))+y(last_y)-startY;
 
 %formatting profiles
  first_Coordinates = horzcat(first_Profile(:,1), transpose(first_Profile_y), first_Profile(:,2));
  last_Coordinates = horzcat(last_Profile(:,1), transpose(last_Profile_y), last_Profile(:,2));
 
- %{
- dlmwrite('twisted_Upper.txt',transpose(twisted_Upper),'delimiter','\t','precision',5);
- dlmwrite('twisted_Lower.txt',transpose(twisted_Lower),'delimiter','\t','precision',5);
- dlmwrite('first_Profile.txt',first_Coordinates, 'delimiter','\t','precision',5);
- dlmwrite('last_Profile.txt',last_Coordinates, 'delimiter','\t','precision',5);
+ if(choice ==1)
+    xlswrite('twisted_Upper_C.xlsx',transpose(twisted_Upper));
+    xlswrite('twisted_Lower_C.xlsx',transpose(twisted_Lower)); 
+    xlswrite('first_Profile_C.xlsx',first_Coordinates);
+    xlswrite('last_Profile_C.xlsx',last_Coordinates);
+elseif (choice ==0)    
+    xlswrite('twisted_Upper_DC.xlsx',transpose(twisted_Upper));
+    xlswrite('twisted_Lower_DC.xlsx',transpose(twisted_Lower)); 
+    xlswrite('first_Profile_DC.xlsx',first_Coordinates);
+    xlswrite('last_Profile_DC.xlsx',last_Coordinates);
+ elseif (choice==2)
+    dlmwrite('twisted_Upper_Devin.txt',transpose(twisted_Upper),'delimiter','\t','precision',5);
+ dlmwrite('twisted_Lower_Devin.txt',transpose(twisted_Lower),'delimiter','\t','precision',5);
+ dlmwrite('first_Profile_Devin.txt',first_Coordinates, 'delimiter','\t','precision',5);
+ dlmwrite('last_Profile_Devin.txt',last_Coordinates, 'delimiter','\t','precision',5);
+end 
+ 
+%{ 
+dlmwrite('twisted_Upper_Center.txt',transpose(twisted_Upper),'delimiter','\t','precision',5);
+ dlmwrite('twisted_Lower_Center.txt',transpose(twisted_Lower),'delimiter','\t','precision',5);
+ dlmwrite('first_Profile_Center.txt',first_Coordinates, 'delimiter','\t','precision',5);
+ dlmwrite('last_Profile_Center.txt',last_Coordinates, 'delimiter','\t','precision',5);
 %} 
+ 
 %% Testing Code for Transformes 
 
 clf
@@ -171,6 +215,7 @@ title('all curves for propeller')
 initial_Length = x_Upper(1)-x_Lower(1);
 transformed_Length = sqrt( (x_Upper_Rotated(1)-x_Lower_Rotated(1))^2+ (z_Rotated_Upper(1)- z_Rotated_Lower(1))^2 );
 
+%{
 %% checking first profile
 % checking first profile and curve matching in detail (top to bottom, same slope)
 clf
@@ -249,5 +294,5 @@ scatter(transformed_Foil(index,1),transformed_Foil(index,2),'r');
     
     
     
- 
+ %} 
   
