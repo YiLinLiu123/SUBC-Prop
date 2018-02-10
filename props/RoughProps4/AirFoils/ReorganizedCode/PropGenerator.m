@@ -171,6 +171,7 @@ last_Profile_y =zeros(1, length(last_Profile))+y(last_y)-startY;
  first_Coordinates = horzcat(first_Profile(:,1), transpose(first_Profile_y), first_Profile(:,2));
  last_Coordinates = horzcat(last_Profile(:,1), transpose(last_Profile_y), last_Profile(:,2));
 
+ %{
  if(choice ==1)
     xlswrite('twisted_Upper_C.xlsx',transpose(twisted_Upper));
     xlswrite('twisted_Lower_C.xlsx',transpose(twisted_Lower)); 
@@ -187,6 +188,7 @@ elseif (choice ==0)
  dlmwrite('first_Profile_Devin.txt',first_Coordinates, 'delimiter','\t','precision',5);
  dlmwrite('last_Profile_Devin.txt',last_Coordinates, 'delimiter','\t','precision',5);
 end 
+ %}
  
 %{ 
 dlmwrite('twisted_Upper_Center.txt',transpose(twisted_Upper),'delimiter','\t','precision',5);
